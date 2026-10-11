@@ -1,0 +1,77 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test, lint, and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6  # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6  # v6.4.0
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Validate YAML and shell scripts
+        run: |
+          pipx install yamllint
+          yamllint .
+          find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
+
+      - name: Check documentation and code invariants
+        run: |
+          node scripts/check-security-invariants.mjs
+          node scripts/check-font-design.mjs
+          node scripts/check-icon-design.mjs
+          node scripts/check-theme-design.mjs
+          node scripts/check-pip-patterns.mjs
+          node scripts/check-display-mode-wiring.mjs
+          node scripts/check-backhandler.mjs
+          node scripts/check-custom-range-wiring.mjs
+          node scripts/check-history-wiring.mjs
+          node scripts/check-animation-wiring.mjs
+          node scripts/check-feedback-wiring.mjs
+          node scripts/check-docs-sync.mjs
+          node scripts/check-screenshots.mjs
+          node scripts/check-ci-wiring.mjs
+
+      - name: Test, lint, and package
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleRelease
+
+      - name: Verify unit-test results and expected classes
+        run: node scripts/check-test-counts.mjs
+
+      - name: Upload failure reports
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: build-reports-${{ github.run_attempt }}
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

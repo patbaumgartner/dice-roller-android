@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Dice Roller</string>
+
+    <string name="screen_roller">Dice Roller</string>
+    <string name="screen_presets">Presets</string>
+    <string name="screen_settings">Settings</string>
+
+    <string name="action_close">Close</string>
+    <string name="action_roll">Roll</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_clear_locked">Clear locked dice</string>
+    <string name="action_delete">Delete preset</string>
+
+    <string name="dice_count_label">Dice: %1$d</string>
+    <string name="die_type_label">Die type</string>
+    <string name="custom_range_label">Range: %1$d–%2$d</string>
+
+    <string name="roll_prompt">Roll the dice!</string>
+    <string name="total_label">Total: %1$d</string>
+    <string name="history_title">History</string>
+
+    <string name="display_dots">Dots</string>
+    <string name="display_numbers">Numbers</string>
+
+    <string name="animation_off">Off</string>
+    <string name="animation_slow">Slow</string>
+    <string name="animation_normal">Normal</string>
+    <string name="animation_fast">Fast</string>
+
+    <string name="settings_display_section">Display</string>
+    <string name="settings_animation_section">Animation</string>
+    <string name="settings_sound">Sound effects</string>
+    <string name="settings_haptics">Haptic feedback</string>
+    <string name="settings_shake">Shake to roll</string>
+    <string name="preset_name_hint">Preset name</string>
+    <string name="settings_save_preset">Save current setup as preset</string>
+    <string name="preset_saved">Preset saved</string>
+    <string name="max_presets_reached">Maximum 10 presets reached</string>
+
+    <string name="presets_empty_title">No saved presets</string>
+    <string name="presets_empty_hint">Configure dice on the roller screen, then save a preset from the settings.</string>
+    <string name="preset_die_summary">%1$d × %2$s</string>
+
+    <string name="cd_presets">Presets</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_die_result">Die showing %1$d</string>
+</resources>

@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="400"
+    android:viewportHeight="400">
+    <!-- Single rounded die face centred in the safe zone (adaptive icons crop ~1/12). -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M130,80 h140 a40,40 0 0 1 40,40 v160 a40,40 0 0 1 -40,40 h-140 a40,40 0 0 1 -40,-40 v-160 a40,40 0 0 1 40,-40 z" />
+    <path
+        android:fillColor="#04202B"
+        android:pathData="M150,140 m-20,0 a20,20 0 1 0 40,0 a20,20 0 1 0 -40,0 z" />
+    <path
+        android:fillColor="#04202B"
+        android:pathData="M250,140 m-20,0 a20,20 0 1 0 40,0 a20,20 0 1 0 -40,0 z" />
+    <path
+        android:fillColor="#04202B"
+        android:pathData="M200,200 m-20,0 a20,20 0 1 0 40,0 a20,20 0 1 0 -40,0 z" />
+    <path
+        android:fillColor="#04202B"
+        android:pathData="M150,260 m-20,0 a20,20 0 1 0 40,0 a20,20 0 1 0 -40,0 z" />
+    <path
+        android:fillColor="#04202B"
+        android:pathData="M250,250 m-20,0 a20,20 0 1 0 40,0 a20,20 0 1 0 -40,0 z" />
+</vector>

@@ -8,6 +8,13 @@ No public release has been published yet.
 
 ### Added
 
+- Downloadable builds on the GitHub Releases page: every push to `main`
+  publishes a signed **Snapshot** APK (prerelease), and every `vX.Y.Z` tag
+  publishes a signed release with APK, AAB, and `SHA256SUMS`
+  (`.github/workflows/release.yml`, ADR-0001)
+- Release signing is configurable via `SR_*` environment variables or a local
+  `keystore.properties`; `versionName`/`versionCode` can be set with
+  `-PversionName` / `-PversionCode`
 - Roll 1 to 40 dice, from standard D4 to D100 or a custom 0–100 range
 - A custom-range editor in Settings with a slider that keeps the bounds ordered
 - Tap to roll, with optional shake-to-roll; both honour the sound and haptics settings

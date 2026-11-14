@@ -39,6 +39,34 @@ A real device is not required for unit tests or compilation.
 Use Conventional Commit subjects, for example `feat: add dice lock` or
 `fix: keep locked dice between rolls`.
 
+## Releases
+
+Downloadable builds are published from `.github/workflows/release.yml` (see
+[ADR-0001](docs/adr/0001-release-signing-and-distribution.md)):
+
+- Every push to `main` rebuilds the **Snapshot** prerelease with a signed APK.
+- Pushing a signed tag `vX.Y.Z` publishes a **release**: signed APK + AAB +
+  `SHA256SUMS`. The tag sets the version (`v1.0.0` → versionName `1.0.0`,
+  versionCode `10000`):
+
+  ```bash
+  git tag -s v1.0.0 -m "v1.0.0"
+  git push origin main v1.0.0
+  ```
+
+Both jobs sign with the release key held in the repository secrets
+`SR_KEYSTORE_BASE64`, `SR_KEYSTORE_PASSWORD`, `SR_KEY_ALIAS`, and
+`SR_KEY_PASSWORD`; the workflow fails if they are missing. To set or rotate
+the key, generate a PKCS12 keystore with `keytool` and upload it with
+`gh secret set` — never commit keystore material. Keep one backup of the
+keystore outside the repository (password manager / HSM); losing it means
+updates can no longer be signed with the same key.
+
+For local signed builds, either export the four `SR_*` environment variables
+or create a git-ignored `keystore.properties` with `storeFile`,
+`storePassword`, `keyAlias`, `keyPassword`, then run
+`./gradlew :app:assembleRelease`.
+
 ## Validate
 
 ```bash

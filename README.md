@@ -98,6 +98,22 @@ drift from the intended visual language:
 - The only permission requested is `VIBRATE`, used for haptic feedback and
   fully switchable off in settings
 
+## Download
+
+Signed builds are published on the
+[Releases](https://github.com/patbaumgartner/dice-roller-android/releases)
+page:
+
+- **Releases** (`vX.Y.Z` tags): signed APK and AAB, plus `SHA256SUMS` and the
+  signer certificate fingerprint in the release notes.
+- **Snapshot** (prerelease, rebuilt on every push to `main`): the latest
+  signed APK for testing.
+
+Both use the same release key, so they install over each other as updates.
+Verify a download against `SHA256SUMS` before installing. Sideloading on
+Android 8+ requires allowing "Install unknown apps" for the app you open the
+APK with.
+
 ## Requirements
 
 - Android 8.0 (API 26) or newer
@@ -122,8 +138,8 @@ export ANDROID_HOME="$HOME/Android/Sdk"
 
 The resulting debug APK is at `app/build/outputs/apk/debug/app-debug.apk`.
 
-The release APK produced by a source checkout is unsigned. Signing and
-distribution remain the responsibility of the person building the app.
+The release APK produced by a plain source checkout is unsigned; official
+signed builds are published on the Releases page (see [Download](#download)).
 
 ## Testing
 

@@ -1,8 +1,25 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
+
+// Release signing credentials come from the environment (CI) or from a local,
+// git-ignored keystore.properties file (see CONTRIBUTING.md, "Releases").
+// Without either, the release build stays unsigned, which is fine for local
+// development. Never commit the keystore or the passwords.
+val keystoreProps = Properties().apply {
+    val propsFile = rootProject.file("keystore.properties")
+    if (propsFile.isFile) propsFile.inputStream().use(::load)
+}
+
+fun signingSecret(envName: String, propertyName: String): String? =
+    System.getenv(envName)?.takeIf { it.isNotBlank() }
+        ?: keystoreProps.getProperty(propertyName)?.takeIf { it.isNotBlank() }
+
+val releaseKeystoreFile: String? = signingSecret("SR_KEYSTORE_FILE", "storeFile")
 
 android {
     namespace = "com.patbaumgartner.android.diceroller"
@@ -12,9 +29,22 @@ android {
         applicationId = "com.patbaumgartner.android.diceroller"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0.0"
+        // Overridable from the command line (-PversionCode=… -PversionName=…),
+        // which the release workflow uses to stamp tag-based versions.
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = (project.findProperty("versionName") as String?) ?: "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (releaseKeystoreFile != null) {
+            create("release") {
+                storeFile = file(releaseKeystoreFile)
+                storePassword = signingSecret("SR_KEYSTORE_PASSWORD", "storePassword")
+                keyAlias = signingSecret("SR_KEY_ALIAS", "keyAlias")
+                keyPassword = signingSecret("SR_KEY_PASSWORD", "keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +55,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Null (unsigned) when no signing credentials are configured.
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 

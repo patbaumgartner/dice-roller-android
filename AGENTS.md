@@ -48,6 +48,15 @@ them; run them locally):
 - The configuration cache is on; a change that reads files at configuration
   time can break it.
 
+## Releases
+
+Signed builds are published by `.github/workflows/release.yml` — see
+CONTRIBUTING.md "Releases" and
+`docs/adr/0001-release-signing-and-distribution.md`. The release signing
+config in `app/build.gradle.kts` activates only when `SR_KEYSTORE_FILE` (or a
+local git-ignored `keystore.properties`) is present, so plain checkouts keep
+building unsigned release APKs. Never commit keystore material.
+
 ## Keep the core JVM-testable
 
 The JVM suite (`testDebugUnitTest`) covers the whole `domain/` package and

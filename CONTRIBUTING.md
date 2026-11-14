@@ -12,7 +12,7 @@ all; a pull request that adds network access will be rejected.
 
 ## Set up a development environment
 
-Install JDK 17 and Android SDK 37, then clone the repository. Android Studio
+Install JDK 27 and Android SDK 37, then clone the repository. Android Studio
 can import the root directory directly; command-line builds use the checked-in
 Gradle wrapper and need `ANDROID_HOME` set, or an `sdk.dir` line in
 `local.properties`.

@@ -117,7 +117,7 @@ APK with.
 ## Requirements
 
 - Android 8.0 (API 26) or newer
-- JDK 17 to build
+- JDK 27 to build
 - Android SDK 37 with the matching build tools
 
 The first build downloads the Gradle distribution and Android dependencies. It

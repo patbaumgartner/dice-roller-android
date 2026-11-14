@@ -34,6 +34,10 @@ No public release has been published yet.
 - `scripts/capture-screenshots.sh` to regenerate the documentation
   screenshots from an emulator
 
+### Changed
+
+- CI, the release workflow, and local builds now run on JDK 27 (Gradle 9.8.2 / AGP 9.5.1; the bytecode target stays 17)
+
 ### Fixed
 
 - `DicePreset.createdAt` no longer regenerates on deserialization, which made

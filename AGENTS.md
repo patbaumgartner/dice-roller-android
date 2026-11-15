@@ -28,8 +28,7 @@ That is the core CI gate — run it before claiming a change is done. CI also
 runs the static invariant checks, including font, icon, and theme design, and
 verifies unit-test results and required test classes. The test check does not
 measure code coverage. Matching static checks use `node scripts/check-*.mjs`.
-Instrumented UI tests additionally need a running emulator (CI does not run
-them; run them locally):
+Instrumented UI tests also run in CI; locally they need a running emulator:
 
 ```bash
 ./gradlew connectedDebugAndroidTest

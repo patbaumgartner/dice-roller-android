@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.patbaumgartner.android.diceroller.R
+import com.patbaumgartner.android.diceroller.ui.AuthorNote
 import com.patbaumgartner.android.diceroller.domain.model.AnimationSpeed
 import com.patbaumgartner.android.diceroller.domain.model.DicePreset
 import com.patbaumgartner.android.diceroller.domain.model.DieConfig
@@ -50,6 +51,7 @@ import com.patbaumgartner.android.diceroller.domain.model.Limits
 import com.patbaumgartner.android.diceroller.domain.model.RollSettings
 import com.patbaumgartner.android.diceroller.ui.DiceRollerIcons
 import com.patbaumgartner.android.diceroller.ui.RollerViewModel
+import com.patbaumgartner.android.diceroller.ui.theme.DiceRollerTheme
 import com.patbaumgartner.android.diceroller.ui.RollerViewModel.PresetSaveResult
 
 /**
@@ -159,8 +161,9 @@ internal fun SettingsScreen(
                 onClick = { licensesShown = true },
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             ) {
-                Text(stringResource(R.string.settings_open_source_licenses))
+                Text(stringResource(R.string.settings_open_source_licenses), color = DiceRollerTheme.accents.brand)
             }
+            AuthorNote()
             Spacer(Modifier.height(16.dp))
         }
     }

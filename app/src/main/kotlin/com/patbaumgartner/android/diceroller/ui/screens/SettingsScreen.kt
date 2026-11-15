@@ -51,7 +51,6 @@ import com.patbaumgartner.android.diceroller.domain.model.Limits
 import com.patbaumgartner.android.diceroller.domain.model.RollSettings
 import com.patbaumgartner.android.diceroller.ui.DiceRollerIcons
 import com.patbaumgartner.android.diceroller.ui.RollerViewModel
-import com.patbaumgartner.android.diceroller.ui.theme.DiceRollerTheme
 import com.patbaumgartner.android.diceroller.ui.RollerViewModel.PresetSaveResult
 
 /**
@@ -157,13 +156,7 @@ internal fun SettingsScreen(
                     color = MaterialTheme.colorScheme.error,
                 )
             }
-            TextButton(
-                onClick = { licensesShown = true },
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-            ) {
-                Text(stringResource(R.string.settings_open_source_licenses), color = DiceRollerTheme.accents.brand)
-            }
-            AuthorNote()
+            AuthorNote(onShowTypefaceLicense = { licensesShown = true })
             Spacer(Modifier.height(16.dp))
         }
     }

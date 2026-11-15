@@ -60,6 +60,7 @@
     </plurals>
     <string name="about_heading">About</string>
     <string name="about_version">Version %1$s</string>
+    <string name="about_version_commit">Version %1$s (%2$s)</string>
     <string name="about_author">© 2026 Patrick Baumgartner</string>
     <string name="about_crafted">Crafted with ❤️</string>
     <string name="about_author_name" translatable="false">Patrick Baumgartner</string>

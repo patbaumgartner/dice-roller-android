@@ -21,6 +21,32 @@ fun signingSecret(envName: String, propertyName: String): String? =
 
 val releaseKeystoreFile: String? = signingSecret("SR_KEYSTORE_FILE", "storeFile")
 
+// Shown in Settings > About. CI can set GIT_COMMIT; local builds ask git, and builds without git omit it.
+val gitCommit: String = providers.environmentVariable("GIT_COMMIT").orNull?.take(10)
+    ?: runCatching {
+        providers.exec {
+            commandLine("git", "rev-parse", "--short=10", "HEAD")
+            isIgnoreExitValue = true
+        }.standardOutput.asText.get().trim()
+    }.getOrDefault("")
+
+fun String.asBuildConfigLiteral(): String = buildString {
+    append('"')
+    this@asBuildConfigLiteral.forEach { character ->
+        append(
+            when (character) {
+                '\\' -> "\\\\"
+                '"' -> "\\\""
+                '\n' -> "\\n"
+                '\r' -> "\\r"
+                '\t' -> "\\t"
+                else -> character
+            },
+        )
+    }
+    append('"')
+}
+
 android {
     namespace = "com.patbaumgartner.android.diceroller"
     compileSdk = 37
@@ -33,6 +59,7 @@ android {
         // which the release workflow uses to stamp tag-based versions.
         versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "1.0.0"
+        buildConfigField("String", "GIT_COMMIT", gitCommit.asBuildConfigLiteral())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

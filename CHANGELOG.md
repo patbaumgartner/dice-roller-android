@@ -4,7 +4,24 @@ All notable changes are documented here. The project follows [Semantic Versionin
 
 ## Unreleased
 
-No public release has been published yet.
+## [1.1.0] - 2026-11-16
+
+### Added
+
+- The About screen now shows the build commit next to the version
+
+### Changed
+
+- The About screen is aligned with the other apps (design, typeface licence
+  location, author note layout)
+- CI, the release workflow, and local builds now run on JDK 27 (Gradle 9.8.2 / AGP 9.5.1; the bytecode target stays 17)
+
+### Fixed
+
+- The snapshot release and tag are recreated on rebuild, so the source
+  archives match the uploaded binaries
+
+## [1.0.0] - 2026-11-14
 
 ### Added
 
@@ -33,10 +50,6 @@ No public release has been published yet.
 - Design invariant checks (font, icon, theme) that run in CI
 - `scripts/capture-screenshots.sh` to regenerate the documentation
   screenshots from an emulator
-
-### Changed
-
-- CI, the release workflow, and local builds now run on JDK 27 (Gradle 9.8.2 / AGP 9.5.1; the bytecode target stays 17)
 
 ### Fixed
 

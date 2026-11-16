@@ -57,8 +57,8 @@ android {
         targetSdk = 37
         // Overridable from the command line (-PversionCode=… -PversionName=…),
         // which the release workflow uses to stamp tag-based versions.
-        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
-        versionName = (project.findProperty("versionName") as String?) ?: "1.0.0"
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 10100
+        versionName = (project.findProperty("versionName") as String?) ?: "1.1.0"
         buildConfigField("String", "GIT_COMMIT", gitCommit.asBuildConfigLiteral())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

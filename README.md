@@ -1,4 +1,4 @@
-# Dice Roller for Android
+# Dice Roller
 
 [![CI](https://github.com/patbaumgartner/dice-roller-android/actions/workflows/ci.yml/badge.svg)](https://github.com/patbaumgartner/dice-roller-android/actions/workflows/ci.yml)
 [![Security](https://github.com/patbaumgartner/dice-roller-android/actions/workflows/security.yml/badge.svg)](https://github.com/patbaumgartner/dice-roller-android/actions/workflows/security.yml)

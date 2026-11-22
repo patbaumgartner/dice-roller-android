@@ -33,3 +33,4 @@ val DiceIndigo = Color(0xFF3949AB)
 
 val Coral = Color(0xFFC2603F)
 val CoralLight = Color(0xFFE79274)
+val CoralDeep = Color(0xFFAC4B2F)

@@ -45,14 +45,14 @@ private val LightScheme = lightColorScheme(
     surfaceContainerHighest = Color(0xFFE2E8E8),
     surfaceVariant = PorcelainRaised,
     onSurfaceVariant = InkMuted,
-    error = Coral,
+    error = CoralDeep,
 )
 
 private val DarkScheme = darkColorScheme(
     primary = BrandCyan,
     onPrimary = OnBrandCyan,
     primaryContainer = BrandCyanDeep,
-    onPrimaryContainer = BrandCyanLight,
+    onPrimaryContainer = Color.White,
     secondary = BrandCyanLight,
     onSecondary = OnBrandCyan,
     secondaryContainer = Color(0xFF123642),

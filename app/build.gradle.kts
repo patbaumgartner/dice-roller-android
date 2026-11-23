@@ -49,7 +49,7 @@ fun String.asBuildConfigLiteral(): String = buildString {
 
 android {
     namespace = "com.patbaumgartner.android.diceroller"
-    compileSdk = 37
+    compileSdk = 38
 
     defaultConfig {
         applicationId = "com.patbaumgartner.android.diceroller"

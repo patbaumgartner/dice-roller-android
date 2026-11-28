@@ -72,6 +72,11 @@ data class RollSettings(
     val shakeToRollEnabled: Boolean = false,
 )
 
+/** Keeps decoded or externally supplied settings within the product's dice-count cap. */
+fun RollSettings.normalized(): RollSettings = copy(
+    diceCount = diceCount.coerceIn(Limits.MIN_DICE, Limits.MAX_DICE),
+)
+
 @Serializable
 data class DicePreset(
     val id: String = java.util.UUID.randomUUID().toString(),

@@ -30,12 +30,51 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Only queues the merge. Branch protection holds it until the required
-      # checks pass, which is also what lets GITHUB_TOKEN merge PRs that touch
-      # .github/workflows/** -- a direct merge there is rejected.
+      # A queued merge is safe only when hosted settings hold it for the aggregate
+      # CI check. This read-only preflight fails closed when main is not protected.
+      - name: Verify main requires the aggregate CI check
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUIRED_CONTEXT: Test, lint, and package
+        run: |
+          set -euo pipefail
+
+          if ! rules_pages="$(gh api --paginate --slurp \
+            "repos/$GITHUB_REPOSITORY/rules/branches/main?per_page=100")"; then
+            echo "::error::Could not read active main rules; refusing to enable auto-merge."
+            exit 1
+          fi
+
+          if jq -e --arg required "$REQUIRED_CONTEXT" '
+            any(.[][];
+              .type == "required_status_checks"
+              and any(.parameters.required_status_checks[]?; .context == $required))
+          ' <<<"$rules_pages" >/dev/null; then
+            echo "An active main ruleset requires '$REQUIRED_CONTEXT'."
+            exit 0
+          fi
+
+          echo "::error::Auto-merge blocked: the repository owner must configure an active main ruleset" \
+            "requiring '$REQUIRED_CONTEXT', then rerun this workflow."
+          exit 1
+
+      # Only queues the merge after the fail-closed preflight above has proved that
+      # hosted enforcement will hold it until the required checks pass.
       - name: Enable auto-merge for patch and minor updates
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --rebase "$PR_URL"
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::The repository owner must configure AUTO_MERGE_TOKEN with Contents write," \
+              "Pull requests write, and Workflows write on this repository so merged pushes trigger CI and releases."
+            exit 1
+          fi
+          gh pr merge --auto --rebase "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN }}

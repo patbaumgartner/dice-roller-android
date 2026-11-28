@@ -151,6 +151,30 @@ class RollDiceUseCaseTest {
     }
 
     @Test
+    fun `negative dice count rolls the supported minimum`() {
+        val entry = useCase.roll(RollSettings(diceCount = -1))
+        assertEquals("negative counts must clamp to one die", 1, entry.values.size)
+    }
+
+    @Test
+    fun `zero dice count rolls the supported minimum`() {
+        val entry = useCase.roll(RollSettings(diceCount = 0))
+        assertEquals("zero counts must clamp to one die", 1, entry.values.size)
+    }
+
+    @Test
+    fun `forty one dice roll the supported maximum`() {
+        val entry = useCase.roll(RollSettings(diceCount = 41))
+        assertEquals("counts above the cap must clamp to forty dice", 40, entry.values.size)
+    }
+
+    @Test
+    fun `very large dice count rolls only the supported maximum`() {
+        val entry = useCase.roll(RollSettings(diceCount = 100_000))
+        assertEquals("very large counts must not cause excessive work", 40, entry.values.size)
+    }
+
+    @Test
     fun `locked index outside dice count is ignored safely`() {
         val settings = RollSettings(diceCount = 2, dieConfig = DieConfig(DieType.D6))
         val entry = useCase.roll(settings, lockedValues = mapOf(99 to 5))

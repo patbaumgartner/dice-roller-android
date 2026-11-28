@@ -107,18 +107,21 @@ page:
 - **Releases** (`vX.Y.Z` tags): signed APK and AAB, plus `SHA256SUMS` and the
   signer certificate fingerprint in the release notes.
 - **Snapshot** (prerelease, rebuilt on every push to `main`): the latest
-  signed APK for testing.
+  signed APK for testing, plus `SHA256SUMS`.
 
-Both use the same release key, so they install over each other as updates.
-Verify a download against `SHA256SUMS` before installing. Sideloading on
-Android 8+ requires allowing "Install unknown apps" for the app you open the
-APK with.
+Snapshots upgrade stable releases and older snapshots because their version
+codes are higher. Direct Snapshot → Stable installation is blocked as a
+downgrade. [myApps](https://github.com/patbaumgartner/my-apps-android) exposes
+that switch manually with a data-loss warning; it does not uninstall the app
+automatically. Verify a download against `SHA256SUMS` before installing.
+Sideloading on Android 8+ requires allowing "Install unknown apps" for the app
+you open the APK with.
 
 ## Requirements
 
 - Android 8.0 (API 26) or newer
 - JDK 27 to build
-- Android SDK 37 with the matching build tools
+- Android SDK 37.1 with the matching build tools
 
 The first build downloads the Gradle distribution and Android dependencies. It
 can use several gigabytes of disk space in Gradle and Android SDK caches.
@@ -155,27 +158,36 @@ instrumented UI tests for the flows a user performs.
 ```
 
 The JVM suite covers the dice domain (ranges, locking, caps, serialization)
-and ViewModel state transitions, including lock reconciliation and visible
-preset-storage errors. The instrumented suite drives the real app on an
-emulator: roll, navigation, presets and settings screens, 40-dice layout,
-accessibility lock state, and preservation of malformed preset storage.
+and ViewModel state transitions, including lock reconciliation, visible
+preset-storage errors, and normalization of corrupt persisted/preset dice
+counts. The instrumented suite drives the real app on an emulator: roll,
+navigation, presets and settings screens, 40-dice layout, accessibility lock
+state, preservation of malformed JSON, and normalization of semantically
+corrupt stored values.
 
 If saved presets cannot be read, the app reports the problem without replacing
 the existing data. It does not treat unreadable storage as an empty preset list.
 
 ## Validation
 
-Run the same primary gates used by CI:
+Full validation requires JDK 27, Android SDK Platform 37.1, Node.js, Bash, jq,
+yamllint, and ShellCheck. Install these separately; Gradle does not install the
+lint and workflow-test tools. Then run the local build, release, and CI gates:
 
 ```bash
-./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleRelease \
+  assembleDebugAndroidTest bundleRelease
 yamllint .
 find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
-node scripts/check-ci-wiring.mjs
+for script in scripts/check-*.mjs; do node "$script"; done
+node --test scripts/auto-merge-preflight.test.mjs
+git diff --check
 ```
 
-CI also runs the static invariant checks in `scripts/` — pip layout, feature
-wiring, animation, sound/haptics, manifest permissions, screenshots,
+The required `Test, lint, and package` check is a final aggregate that fails
+unless both the build/unit-test job and the emulator instrumented-test job
+succeed. CI also runs the static invariant checks in `scripts/` — pip layout,
+feature wiring, animation, sound/haptics, manifest permissions, screenshots,
 documentation sync, and the design checks (font, icon, theme). Run each
 `node scripts/check-*.mjs` locally after changing anything they cover. The
 unit-test result check confirms that the suite has no failures or skips and

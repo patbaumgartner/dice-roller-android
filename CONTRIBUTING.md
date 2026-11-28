@@ -12,7 +12,7 @@ all; a pull request that adds network access will be rejected.
 
 ## Set up a development environment
 
-Install JDK 27 and Android SDK 37, then clone the repository. Android Studio
+Install JDK 27 and Android SDK 37.1, then clone the repository. Android Studio
 can import the root directory directly; command-line builds use the checked-in
 Gradle wrapper and need `ANDROID_HOME` set, or an `sdk.dir` line in
 `local.properties`.
@@ -44,7 +44,8 @@ Use Conventional Commit subjects, for example `feat: add dice lock` or
 Downloadable builds are published from `.github/workflows/release.yml` (see
 [ADR-0001](docs/adr/0001-release-signing-and-distribution.md)):
 
-- Every push to `main` rebuilds the **Snapshot** prerelease with a signed APK.
+- Every push to `main` rebuilds the **Snapshot** prerelease with a signed APK
+  and `SHA256SUMS`.
 - Pushing a signed tag `vX.Y.Z` publishes a **release**: signed APK + AAB +
   `SHA256SUMS`. The tag sets the version (`v1.0.0` → versionName `1.0.0`,
   versionCode `10000`):
@@ -53,6 +54,10 @@ Downloadable builds are published from `.github/workflows/release.yml` (see
   git tag -s v1.0.0 -m "v1.0.0"
   git push origin main v1.0.0
   ```
+
+Snapshots upgrade stable releases and older snapshots. Direct Snapshot → Stable
+installation is a blocked downgrade; myApps offers only a manual switch with a
+data-loss warning, never an automatic uninstall.
 
 Both jobs sign with the release key held in the repository secrets
 `SR_KEYSTORE_BASE64`, `SR_KEYSTORE_PASSWORD`, `SR_KEY_ALIAS`, and
@@ -69,19 +74,25 @@ or create a git-ignored `keystore.properties` with `storeFile`,
 
 ## Validate
 
+Full validation requires JDK 27, Android SDK Platform 37.1, Node.js, Bash, jq,
+yamllint, and ShellCheck. Install these separately; Gradle does not install the
+lint and workflow-test tools.
+
 ```bash
-./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleRelease \
+  assembleDebugAndroidTest bundleRelease
 yamllint .
 find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
-node scripts/check-ci-wiring.mjs
+for script in scripts/check-*.mjs; do node "$script"; done
+node --test scripts/auto-merge-preflight.test.mjs
 git diff --check
 ```
 
-That is the full CI gate. CI also runs the static invariant checks in
-`scripts/` (including the design checks for fonts, icons, and theme) and
-verifies unit-test results and required test classes. That check does not
-measure code coverage. Run the matching
-`node scripts/check-*.mjs` before claiming a change is done.
+That is the full local gate. CI also runs the static invariant checks in
+`scripts/` (including the design checks for fonts, icons and theme) and verifies
+unit-test results and required test classes. That check does not measure code
+coverage. Run the matching `node scripts/check-*.mjs` before claiming a change
+is done.
 
 ## Pull requests
 
@@ -92,6 +103,23 @@ Refresh affected documentation images using the
 [screenshot capture guide](docs/screenshot-capture.md). Launcher-only changes
 can regenerate the preview with `node scripts/render-launcher-icon.mjs`,
 without an emulator.
+
+The required hosted check is the final `verify` job, named
+`Test, lint, and package`. It succeeds only when both `Build and unit tests` and
+`Instrumented tests (emulator)` succeed; a green build job alone is not enough.
+Before enabling Dependabot auto-merge, the workflow uses the metadata-readable,
+paginated `rules/branches/main` API to require an active `main` ruleset with that
+exact context. The endpoint accounts for enforcement and exclusions; unreadable
+or missing rules fail closed. Classic branch protection alone is not visible to
+this preflight and does not qualify. The `pull_request_target` workflow never
+checks out or executes pull-request code.
+
+Only the merge step uses `AUTO_MERGE_TOKEN`, scoped to this repository with
+fine-grained **Contents write**, **Pull requests write**, and **Workflows write**
+permissions. The step fails before merging if that secret is empty. Fetch-metadata
+and the metadata-read preflight keep `GITHUB_TOKEN`. The automation token allows
+post-merge pushes to trigger CI and snapshot release workflows instead of being
+suppressed by `GITHUB_TOKEN` event-recursion protection.
 
 Security vulnerabilities belong in a private report as described in
 [SECURITY.md](SECURITY.md), not a public issue.

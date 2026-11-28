@@ -12,23 +12,29 @@ merely ages.
 
 ## Build and validate
 
-Gradle needs the SDK location from `ANDROID_HOME` or `sdk.dir` in
-`local.properties`, or it stops with `SDK location not found`. Builds on
-JDK 27, same as CI (bytecode target stays 17).
+Validation requires JDK 27 (bytecode target 17), Android SDK Platform 37.1,
+Node.js, Bash, jq, yamllint, and ShellCheck. Install these prerequisites
+separately; Gradle does not install the lint and workflow-test tools. Gradle
+finds the SDK from `ANDROID_HOME` or `sdk.dir` in `local.properties`.
 
 ```bash
 export ANDROID_HOME="$HOME/Android/Sdk"
-./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleRelease \
+  assembleDebugAndroidTest bundleRelease
 yamllint .
 find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
-node scripts/check-ci-wiring.mjs
+for script in scripts/check-*.mjs; do node "$script"; done
+node --test scripts/auto-merge-preflight.test.mjs
+git diff --check
 ```
 
-That is the core CI gate — run it before claiming a change is done. CI also
+That is the core local gate — run it before claiming a change is done. CI also
 runs the static invariant checks, including font, icon, and theme design, and
 verifies unit-test results and required test classes. The test check does not
 measure code coverage. Matching static checks use `node scripts/check-*.mjs`.
-Instrumented UI tests also run in CI; locally they need a running emulator:
+The required `Test, lint, and package` check is the final `verify` job: it
+fails unless both `Build and unit tests` and `Instrumented tests (emulator)`
+succeed. Instrumented UI tests locally need a running emulator:
 
 ```bash
 ./gradlew connectedDebugAndroidTest
@@ -40,8 +46,8 @@ Instrumented UI tests also run in CI; locally they need a running emulator:
   and the build fails with "no longer required since AGP 9.0". Exactly three
   plugins are applied; there is deliberately no
   `kotlin { compilerOptions { jvmTarget } }` block either.
-- `app/build.gradle.kts` enables `buildConfig` but generates no fields today;
-  the debug `buildType` block is intentionally empty. If you ever add a field,
+- `app/build.gradle.kts` generates the escaped `GIT_COMMIT` build field; the
+  debug `buildType` block is intentionally empty. If you add another field,
   escape its value before interpolation — a naive `"${value}"` lets a quote or
   newline break the generated source.
 - The configuration cache is on; a change that reads files at configuration
@@ -86,6 +92,9 @@ untestable. Shared caps live in `domain/model/Limits.kt` — never restate
   (0–100). Never hand a raw range to `Random.nextInt`.
 - Presets are capped at 10, history at 50 entries. The caps live in
   `domain/model/Limits.kt`.
+- Dice counts from storage, presets, and callers go through
+  `RollSettings.normalized()` before use. Reading presets never rewrites their
+  stored JSON; malformed JSON still fails without being overwritten.
 - Roll history is per session and in memory; it is never written to storage.
 - Sound and haptics are gated by their settings and reached through the single
   roll lambda in `RollerApp`, so the button and a shake behave identically.

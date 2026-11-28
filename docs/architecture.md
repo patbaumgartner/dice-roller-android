@@ -53,7 +53,11 @@ history is capped at 50 entries and stays in memory. The caps live in
 Unreadable preset data raises `PresetStorageException`; the ViewModel exposes
 the failure to Settings and Presets instead of pretending the list is empty.
 Save and delete decode the existing list before writing, so a decoding failure
-leaves the stored value intact.
+leaves the stored value intact. `RollSettings.normalized()` clamps persisted,
+preset, and caller-supplied dice counts to `Limits.MIN_DICE..MAX_DICE` at the
+repository, ViewModel, and rolling boundaries. Decoding semantic corruption
+normalizes only the returned value and never rewrites the original JSON;
+explicit settings/preset writes store the normalized count.
 
 **Rolling.** The use case receives the current `RollSettings` and a map of
 locked dice (index to value). Locked values are copied verbatim; only the
@@ -148,18 +152,27 @@ The test pyramid mirrors the layer split:
   cover lock reconciliation when dice settings change and preservation of
   malformed preset data. No Android imports in the domain, no mocking library,
   no Robolectric.
-- **Instrumented UI tests** (`app/src/androidTest`, run by
+- **Instrumented tests** (`app/src/androidTest`, run by
   `connectedDebugAndroidTest`): Compose test rules drive the real
   `MainActivity` on a device or emulator — initial state, rolling, menu
   navigation to Presets, History and Settings, custom-range selection, back
   navigation, large dice counts, accessibility state, and malformed preset
-  storage recovery.
+  storage recovery. Repository tests also exercise raw `SharedPreferences` and
+  decodable-but-invalid preset counts without rewriting JSON on reads.
 - **Static invariant checks** (`scripts/check-*.mjs`, run by CI with Node):
   assert the pip layouts, the display-mode/custom-range/history/animation/
   feedback wiring, the manifest's single `VIBRATE` permission, the screenshots,
   the documentation sync, and that CI keeps running them. `check-test-counts.mjs`
   parses the JUnit XML and fails on any failure, error, skip, or missing class;
   it does not measure code coverage.
+- **Required CI aggregate:** the `verify` job named `Test, lint, and package`
+  always runs after the build and instrumented jobs and succeeds only when both
+  succeed. `check-ci-wiring.mjs` enforces this wiring and the read-only
+  Dependabot protection check that prevents bypassing the aggregate.
+  `auto-merge-preflight.test.mjs` executes the real inline preflight against
+  effective-main-rules fixtures, covering exact contexts, wrong rule types,
+  missing rules, pagination, and API failures. Merge-step controls verify token
+  separation and prove an empty automation token blocks the merge invocation.
 
 ## What is deliberately absent
 

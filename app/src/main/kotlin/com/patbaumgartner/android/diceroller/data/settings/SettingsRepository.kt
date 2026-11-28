@@ -10,6 +10,7 @@ import com.patbaumgartner.android.diceroller.domain.model.DieType
 import com.patbaumgartner.android.diceroller.domain.model.DisplayMode
 import com.patbaumgartner.android.diceroller.domain.model.Limits
 import com.patbaumgartner.android.diceroller.domain.model.RollSettings
+import com.patbaumgartner.android.diceroller.domain.model.normalized
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -41,21 +42,22 @@ class SettingsRepository(context: Context) : SettingsStore {
             soundEnabled = prefs.getBoolean(KEY_SOUND, true),
             vibrationEnabled = prefs.getBoolean(KEY_VIBRATION, true),
             shakeToRollEnabled = prefs.getBoolean(KEY_SHAKE, false),
-        )
+        ).normalized()
     }
 
     override fun saveSettings(settings: RollSettings) {
+        val normalizedSettings = settings.normalized()
         prefs.edit {
-            putInt(KEY_DICE_COUNT, settings.diceCount)
-            putInt(KEY_DIE_TYPE, settings.dieConfig.type.ordinal)
-            putInt(KEY_DIE_MIN, settings.dieConfig.minValue)
-            putInt(KEY_DIE_MAX, settings.dieConfig.maxValue)
-            putBoolean(KEY_DIE_CUSTOM, settings.dieConfig.isCustom)
-            putInt(KEY_DISPLAY_MODE, settings.displayMode.ordinal)
-            putInt(KEY_ANIMATION_SPEED, settings.animationSpeed.ordinal)
-            putBoolean(KEY_SOUND, settings.soundEnabled)
-            putBoolean(KEY_VIBRATION, settings.vibrationEnabled)
-            putBoolean(KEY_SHAKE, settings.shakeToRollEnabled)
+            putInt(KEY_DICE_COUNT, normalizedSettings.diceCount)
+            putInt(KEY_DIE_TYPE, normalizedSettings.dieConfig.type.ordinal)
+            putInt(KEY_DIE_MIN, normalizedSettings.dieConfig.minValue)
+            putInt(KEY_DIE_MAX, normalizedSettings.dieConfig.maxValue)
+            putBoolean(KEY_DIE_CUSTOM, normalizedSettings.dieConfig.isCustom)
+            putInt(KEY_DISPLAY_MODE, normalizedSettings.displayMode.ordinal)
+            putInt(KEY_ANIMATION_SPEED, normalizedSettings.animationSpeed.ordinal)
+            putBoolean(KEY_SOUND, normalizedSettings.soundEnabled)
+            putBoolean(KEY_VIBRATION, normalizedSettings.vibrationEnabled)
+            putBoolean(KEY_SHAKE, normalizedSettings.shakeToRollEnabled)
         }
     }
 
@@ -67,19 +69,21 @@ class SettingsRepository(context: Context) : SettingsStore {
         } ?: return emptyList()
         return try {
             json.decodeFromString<List<DicePreset>>(raw)
+                .map { preset -> preset.copy(settings = preset.settings.normalized()) }
         } catch (e: SerializationException) {
             throw PresetStorageException(e)
         }
     }
 
     override fun savePreset(preset: DicePreset): Boolean {
+        val normalizedPreset = preset.copy(settings = preset.settings.normalized())
         val current = loadPresets().toMutableList()
-        val existingIndex = current.indexOfFirst { it.id == preset.id }
+        val existingIndex = current.indexOfFirst { it.id == normalizedPreset.id }
         if (existingIndex >= 0) {
-            current[existingIndex] = preset
+            current[existingIndex] = normalizedPreset
         } else {
             if (!Limits.canAddPreset(current.size)) return false
-            current.add(preset)
+            current.add(normalizedPreset)
         }
         prefs.edit { putString(KEY_PRESETS, json.encodeToString(current)) }
         return true

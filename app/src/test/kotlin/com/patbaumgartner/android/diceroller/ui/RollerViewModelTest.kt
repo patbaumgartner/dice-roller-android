@@ -6,6 +6,7 @@ import com.patbaumgartner.android.diceroller.domain.model.DicePreset
 import com.patbaumgartner.android.diceroller.domain.model.DieConfig
 import com.patbaumgartner.android.diceroller.domain.model.DieType
 import com.patbaumgartner.android.diceroller.domain.model.DisplayMode
+import com.patbaumgartner.android.diceroller.domain.model.Limits
 import com.patbaumgartner.android.diceroller.domain.model.RollSettings
 import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
@@ -49,6 +50,46 @@ class RollerViewModelTest {
     }
 
     @Test
+    fun `negative persisted dice count is normalized before rolling`() {
+        assertPersistedDiceCountRolls(-1, Limits.MIN_DICE)
+    }
+
+    @Test
+    fun `zero persisted dice count is normalized before rolling`() {
+        assertPersistedDiceCountRolls(0, Limits.MIN_DICE)
+    }
+
+    @Test
+    fun `forty one persisted dice are normalized before rolling`() {
+        assertPersistedDiceCountRolls(41, Limits.MAX_DICE)
+    }
+
+    @Test
+    fun `very large persisted dice count is normalized before rolling`() {
+        assertPersistedDiceCountRolls(Int.MAX_VALUE, Limits.MAX_DICE)
+    }
+
+    @Test
+    fun `negative preset dice count is normalized when applied and rolled`() {
+        assertPresetDiceCountRolls(-1, Limits.MIN_DICE)
+    }
+
+    @Test
+    fun `zero preset dice count is normalized when applied and rolled`() {
+        assertPresetDiceCountRolls(0, Limits.MIN_DICE)
+    }
+
+    @Test
+    fun `forty one preset dice are normalized when applied and rolled`() {
+        assertPresetDiceCountRolls(41, Limits.MAX_DICE)
+    }
+
+    @Test
+    fun `very large preset dice count is normalized when applied and rolled`() {
+        assertPresetDiceCountRolls(Int.MAX_VALUE, Limits.MAX_DICE)
+    }
+
+    @Test
     fun `corrupt preset storage is reported without overwriting it`() {
         val store = FakeSettingsStore().apply { presetsCorrupt = true }
         val viewModel = RollerViewModel(store)
@@ -64,6 +105,24 @@ class RollerViewModelTest {
         assertEquals("corrupt data is not replaced by a save", 0, store.savePresetCalls)
         assertEquals("corrupt data is not replaced by a delete", 0, store.deletePresetCalls)
         assertTrue("storage error remains visible", viewModel.presetStorageError.value)
+    }
+
+    private fun assertPersistedDiceCountRolls(count: Int, expectedCount: Int) {
+        val viewModel = RollerViewModel(FakeSettingsStore(RollSettings(diceCount = count)))
+        assertEquals("persisted count must be normalized", expectedCount, viewModel.settings.value.diceCount)
+        viewModel.roll()
+        val entry = requireNotNull(viewModel.currentEntry.value)
+        assertEquals("roll must use the normalized persisted count", expectedCount, entry.values.size)
+    }
+
+    private fun assertPresetDiceCountRolls(count: Int, expectedCount: Int) {
+        val viewModel = RollerViewModel(FakeSettingsStore())
+        val preset = DicePreset(name = "Invalid count", settings = RollSettings(diceCount = count))
+        viewModel.applyPreset(preset)
+        assertEquals("applied preset count must be normalized", expectedCount, viewModel.settings.value.diceCount)
+        viewModel.roll()
+        val entry = requireNotNull(viewModel.currentEntry.value)
+        assertEquals("roll must use the normalized preset count", expectedCount, entry.values.size)
     }
 
     private class FakeSettingsStore(

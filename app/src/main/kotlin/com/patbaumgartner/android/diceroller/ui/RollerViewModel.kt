@@ -10,6 +10,7 @@ import com.patbaumgartner.android.diceroller.domain.model.DisplayMode
 import com.patbaumgartner.android.diceroller.domain.model.Limits
 import com.patbaumgartner.android.diceroller.domain.model.RollEntry
 import com.patbaumgartner.android.diceroller.domain.model.RollSettings
+import com.patbaumgartner.android.diceroller.domain.model.normalized
 import com.patbaumgartner.android.diceroller.domain.usecase.RollDiceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ class RollerViewModel(
 
     private val rollDice = RollDiceUseCase()
 
-    private val _settings = MutableStateFlow(settingsRepository.loadSettings())
+    private val _settings = MutableStateFlow(settingsRepository.loadSettings().normalized())
     val settings: StateFlow<RollSettings> = _settings.asStateFlow()
 
     private val _presets = MutableStateFlow(emptyList<DicePreset>())
@@ -68,22 +69,23 @@ class RollerViewModel(
     }
 
     fun updateSettings(newSettings: RollSettings) {
+        val normalizedSettings = newSettings.normalized()
         val previousSettings = _settings.value
-        val dieConfigChanged = previousSettings.dieConfig != newSettings.dieConfig
-        val diceCountChanged = previousSettings.diceCount != newSettings.diceCount
+        val dieConfigChanged = previousSettings.dieConfig != normalizedSettings.dieConfig
+        val diceCountChanged = previousSettings.diceCount != normalizedSettings.diceCount
 
         if (dieConfigChanged) {
             clearLocked()
-        } else if (newSettings.diceCount < previousSettings.diceCount) {
+        } else if (normalizedSettings.diceCount < previousSettings.diceCount) {
             _lockedValues.update { locked ->
-                locked.filterKeys { index -> index < newSettings.diceCount }
+                locked.filterKeys { index -> index < normalizedSettings.diceCount }
             }
         }
         if (dieConfigChanged || diceCountChanged) {
             _currentEntry.value = null
         }
-        _settings.value = newSettings
-        settingsRepository.saveSettings(newSettings)
+        _settings.value = normalizedSettings
+        settingsRepository.saveSettings(normalizedSettings)
     }
 
     fun updateDiceCount(count: Int) {

@@ -3,14 +3,16 @@ package com.patbaumgartner.android.diceroller.domain.usecase
 import com.patbaumgartner.android.diceroller.domain.model.Limits
 import com.patbaumgartner.android.diceroller.domain.model.RollEntry
 import com.patbaumgartner.android.diceroller.domain.model.RollSettings
+import com.patbaumgartner.android.diceroller.domain.model.normalized
 import kotlin.random.Random
 
 class RollDiceUseCase(private val random: Random = Random.Default) {
 
     fun roll(settings: RollSettings, lockedValues: Map<Int, Int> = emptyMap()): RollEntry {
-        val config = settings.dieConfig
+        val normalizedSettings = settings.normalized()
+        val config = normalizedSettings.dieConfig
         val range = config.normalizedRange()
-        val values = List(settings.diceCount) { index ->
+        val values = List(normalizedSettings.diceCount) { index ->
             lockedValues[index] ?: random.nextInt(range.first, range.last + 1)
         }
         return RollEntry(values = values, config = config)
